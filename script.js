@@ -200,12 +200,10 @@ function addSwipeToDelete(li) {
             // 判断是左滑还是右滑
             if (diffX > 0) {
                 // 右滑：删除记录
-                li.classList.add('swiped'); // 添加滑动状态
-                setTimeout(() => deleteActivity(li), 300); // 延迟删除任务，等待动画完成
+                deleteActivity(li);
             } else {
                 // 左滑：删除记录
-                li.classList.add('swiped'); // 添加滑动状态
-                setTimeout(() => deleteActivity(li), 300); // 延迟删除任务，等待动画完成
+                deleteActivity(li);
             }
         }
     });
