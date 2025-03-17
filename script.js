@@ -148,7 +148,7 @@ function saveEditedText(li, input, index) {
     if (newText) {
         li.textContent = newText; // 更新文本内容
         updateLocalStorage();
-        updateNextTaskTime(index);
+        updateTaskTimes(); // 更新任务时间链
     } else {
         li.textContent = input.value || li.textContent; // 恢复原始文本
     }
@@ -167,24 +167,27 @@ function updateLocalStorage() {
     localStorage.setItem(currentDate, JSON.stringify(activities));
 }
 
-// 更新下一个任务的时间
-function updateNextTaskTime(index) {
+// 更新任务时间链
+function updateTaskTimes() {
     const activityList = document.getElementById('activityList');
     const tasks = activityList.querySelectorAll('li');
 
-    if (index < tasks.length - 1) {
-        const currentTaskText = tasks[index].textContent;
-        const nextTaskText = tasks[index + 1].textContent;
+    tasks.forEach((task, index) => {
+        if (index < tasks.length - 1) {
+            const currentTaskText = task.textContent;
+            const nextTaskText = tasks[index + 1].textContent;
 
-        const currentEndTime = currentTaskText.split(' - ')[1].split(':')[0];
-        const nextStartTime = nextTaskText.split(' - ')[0];
+            const currentEndTime = currentTaskText.split(' - ')[1].split(':')[0];
+            const nextStartTime = nextTaskText.split(' - ')[0];
 
-        if (currentEndTime !== nextStartTime) {
-            const updatedNextTaskText = nextTaskText.replace(nextStartTime, currentEndTime);
-            tasks[index + 1].textContent = updatedNextTaskText;
-            updateLocalStorage();
+            if (currentEndTime !== nextStartTime) {
+                const updatedNextTaskText = nextTaskText.replace(nextStartTime, currentEndTime);
+                tasks[index + 1].textContent = updatedNextTaskText;
+            }
         }
-    }
+    });
+
+    updateLocalStorage(); // 更新 localStorage
 }
 
 // 添加滑动删除功能
@@ -220,6 +223,7 @@ function addSwipeToDelete(li) {
         if (isSwiping) {
             li.remove(); // 删除任务
             updateLocalStorage(); // 更新 localStorage
+            updateTaskTimes(); // 更新任务时间链
         }
     });
 }
