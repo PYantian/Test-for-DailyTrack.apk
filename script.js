@@ -158,11 +158,12 @@ function updateLocalStorage() {
 }
 
 // 添加滑动删除功能
+// 添加滑动删除功能
 function addSwipeToDelete(li) {
     let touchStartX = 0;
     let touchStartY = 0;
     let isSwiping = false;
-    const swipeThreshold = 300; // 滑动阈值，单位：像素
+    const swipeThreshold = 100; // 滑动阈值，单位：像素
 
     li.addEventListener('touchstart', (e) => {
         touchStartX = e.touches[0].clientX;
@@ -183,33 +184,29 @@ function addSwipeToDelete(li) {
         if (Math.abs(diffX) > swipeThreshold && Math.abs(diffX) > Math.abs(diffY)) {
             isSwiping = true; // 标记为滑动事件
             e.preventDefault(); // 防止页面滚动
+
+            // 添加滑动效果
+            li.style.transform = `translateX(${diffX}px)`;
         }
     });
 
     li.addEventListener('touchend', (e) => {
-        const touch = e.changedTouches[0];
-        const touchEndX = touch.clientX;
-        const touchEndY = touch.clientY;
-
-        // 计算滑动距离
-        const diffX = touchEndX - touchStartX;
-        const diffY = touchEndY - touchStartY;
-
-        // 如果是滑动事件，则执行删除操作
         if (isSwiping) {
-            // 判断是左滑还是右滑
-            if (diffX > 0) {
-                // 右滑：删除记录
-                li.classList.add('swiped'); // 添加滑动状态
-                setTimeout(() => deleteActivity(li), 300); // 延迟删除任务，等待动画完成
-            } else {
-                // 左滑：删除记录
-                li.classList.add('swiped'); // 添加滑动状态
-                setTimeout(() => deleteActivity(li), 300); // 延迟删除任务，等待动画完成
-            }
+            // 添加滑动动画
+            li.classList.add('swiped');
+
+            // 延迟删除任务，等待动画完成
+            setTimeout(() => {
+                li.remove(); // 删除任务
+                updateLocalStorage(); // 更新 localStorage
+            }, 300); // 动画持续时间
+        } else {
+            // 如果没有滑动到阈值，则复位
+            li.style.transform = 'translateX(0)';
         }
     });
 }
+
 
 // 删除记录
 function deleteActivity(li) {
