@@ -161,26 +161,42 @@ function updateLocalStorage() {
 function addSwipeToDelete(li) {
     let touchStartX = 0;
     let touchEndX = 0;
+    let isSwiping = false;
 
     li.addEventListener('touchstart', (e) => {
         touchStartX = e.touches[0].clientX;
+        isSwiping = true;
     });
 
     li.addEventListener('touchmove', (e) => {
+        if (!isSwiping) return;
         touchEndX = e.touches[0].clientX;
+
+        // 计算滑动距离
+        const swipeDistance = touchEndX - touchStartX;
+
+        // 限制滑动范围
+        if (swipeDistance > 50 || swipeDistance < -50) {
+            e.preventDefault(); // 防止页面滚动
+        }
     });
 
     li.addEventListener('touchend', () => {
+        if (!isSwiping) return;
+
         const swipeDistance = touchEndX - touchStartX;
 
         // 判断滑动方向
-        if (swipeDistance > 600) {
+        if (swipeDistance > 50) {
             // 右滑：删除记录
             deleteActivity(li);
-        } else if (swipeDistance < -600) {
+        } else if (swipeDistance < -50) {
             // 左滑：删除记录
             deleteActivity(li);
         }
+
+        // 重置滑动状态
+        isSwiping = false;
     });
 }
 
