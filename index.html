@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DailyTrack</title> <!-- 浏览器标签页标题 -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>DailyTrack</h1> <!-- 页面内容中的标题 -->
+        <form id="activityForm">
+            <div class="input-group">
+                <input type="text" id="activity" placeholder="输入活动" required>
+                <button type="submit">添加活动</button>
+            </div>
+        </form>
+        <h2>今日活动记录</h2>
+        <ul id="activityList"></ul>
+        <h2>历史记录</h2>
+        <select id="dateSelector">
+            <option value="">选择日期</option>
+        </select>
+        <ul id="historyList"></ul>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
