@@ -136,6 +136,9 @@ function createEditableListItem(text, index) {
         });
     });
 
+    // 添加滑动删除功能
+    addSwipeToDelete(li);
+
     return li;
 }
 
@@ -182,6 +185,43 @@ function updateNextTaskTime(index) {
             updateLocalStorage();
         }
     }
+}
+
+// 添加滑动删除功能
+function addSwipeToDelete(li) {
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let isSwiping = false;
+    const swipeThreshold = 100; // 滑动阈值，单位：像素
+
+    li.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        isSwiping = false; // 初始状态为未滑动
+    });
+
+    li.addEventListener('touchmove', (e) => {
+        const touch = e.touches[0];
+        const touchEndX = touch.clientX;
+        const touchEndY = touch.clientY;
+
+        // 计算滑动距离
+        const diffX = touchEndX - touchStartX;
+        const diffY = touchEndY - touchStartY;
+
+        // 如果滑动距离超过阈值，则认为是滑动事件
+        if (Math.abs(diffX) > swipeThreshold && Math.abs(diffX) > Math.abs(diffY)) {
+            isSwiping = true; // 标记为滑动事件
+            e.preventDefault(); // 防止页面滚动
+        }
+    });
+
+    li.addEventListener('touchend', (e) => {
+        if (isSwiping) {
+            li.remove(); // 删除任务
+            updateLocalStorage(); // 更新 localStorage
+        }
+    });
 }
 
 // 表单提交事件
