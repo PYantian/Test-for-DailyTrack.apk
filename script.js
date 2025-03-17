@@ -162,7 +162,7 @@ function addSwipeToDelete(li) {
     let touchStartX = 0;
     let touchStartY = 0;
     let isSwiping = false;
-    const swipeThreshold = 200; // 滑动阈值，单位：像素
+    const swipeThreshold = 300; // 滑动阈值，单位：像素
 
     li.addEventListener('touchstart', (e) => {
         touchStartX = e.touches[0].clientX;
