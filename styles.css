@@ -68,6 +68,12 @@ li {
     padding: 10px;
     border-radius: 4px;
     border: 1px solid #ddd;
+    transition: transform 0.3s ease; /* 滑动动画 */
+    position: relative; /* 为滑动效果提供定位 */
+}
+
+li.swiped {
+    transform: translateX(100%); /* 右滑效果 */
 }
 
 select {
@@ -76,4 +82,21 @@ select {
     margin-bottom: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
+}
+
+/* 滑动删除提示效果 */
+li::after {
+    content: "删除";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #ff4d4d;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+li.swiped::after {
+    opacity: 1; /* 滑动时显示删除提示 */
 }
