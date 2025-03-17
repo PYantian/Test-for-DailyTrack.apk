@@ -15,8 +15,8 @@ function loadActivities(date) {
     const activityList = document.getElementById('activityList');
     activityList.innerHTML = ''; // 清空当前列表
 
-    activities.forEach(activity => {
-        const li = createEditableListItem(activity);
+    activities.forEach((activity, index) => {
+        const li = createEditableListItem(activity, index);
         activityList.appendChild(li);
     });
 
@@ -38,24 +38,23 @@ function saveActivity(date, activityText) {
 // 添加活动
 function addActivity(currentTime, activity) {
     const activityList = document.getElementById('activityList');
-    const li = document.createElement('li');
 
     // 格式化时间
     const formattedTime = formatTime(currentTime);
 
     // 如果是第一次记录，只显示当前时间
     if (!lastTime) {
-        li.textContent = `${formattedTime} - ${activity}`;
+        const li = createEditableListItem(`${formattedTime} - ${activity}`, 0);
+        activityList.appendChild(li);
     } else {
         // 否则显示时间段
         const formattedLastTime = formatTime(lastTime);
-        li.textContent = `${formattedLastTime} - ${formattedTime}: ${activity}`;
+        const li = createEditableListItem(`${formattedLastTime} - ${formattedTime}: ${activity}`, activityList.children.length);
+        activityList.appendChild(li);
     }
 
-    const editableLi = createEditableListItem(li.textContent);
-    activityList.appendChild(editableLi);
     const currentDate = getCurrentDate();
-    saveActivity(currentDate, editableLi.textContent); // 保存记录
+    saveActivity(currentDate, activityList.lastChild.textContent); // 保存记录
     lastTime = currentTime;
 }
 
@@ -95,14 +94,14 @@ function loadHistory(date) {
     const historyList = document.getElementById('historyList');
     historyList.innerHTML = ''; // 清空历史记录
 
-    activities.forEach(activity => {
-        const li = createEditableListItem(activity);
+    activities.forEach((activity, index) => {
+        const li = createEditableListItem(activity, index);
         historyList.appendChild(li);
     });
 }
 
 // 创建可编辑的列表项
-function createEditableListItem(text) {
+function createEditableListItem(text, index) {
     const li = document.createElement('li');
     li.textContent = text;
 
@@ -118,27 +117,25 @@ function createEditableListItem(text) {
         // 按下回车键或失去焦点时保存修改
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                saveEditedText(li, input);
+                saveEditedText(li, input, index);
             }
         });
 
         input.addEventListener('blur', () => {
-            saveEditedText(li, input);
+            saveEditedText(li, input, index);
         });
     });
-
-    // 添加滑动删除功能
-    addSwipeToDelete(li);
 
     return li;
 }
 
 // 保存编辑后的文字
-function saveEditedText(li, input) {
+function saveEditedText(li, input, index) {
     const newText = input.value.trim();
     if (newText) {
         li.textContent = newText;
         updateLocalStorage();
+        updateNextTaskTime(index);
     } else {
         li.textContent = input.value; // 保留原内容
     }
@@ -157,64 +154,24 @@ function updateLocalStorage() {
     localStorage.setItem(currentDate, JSON.stringify(activities));
 }
 
-// 添加滑动删除功能
-function addSwipeToDelete(li) {
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let isSwiping = false;
-    const swipeThreshold = 300; // 滑动阈值，单位：像素
+// 更新下一个任务的时间
+function updateNextTaskTime(index) {
+    const activityList = document.getElementById('activityList');
+    const tasks = activityList.querySelectorAll('li');
 
-    li.addEventListener('touchstart', (e) => {
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-        isSwiping = false; // 初始状态为未滑动
-    });
+    if (index < tasks.length - 1) {
+        const currentTaskText = tasks[index].textContent;
+        const nextTaskText = tasks[index + 1].textContent;
 
-    li.addEventListener('touchmove', (e) => {
-        const touch = e.touches[0];
-        const touchEndX = touch.clientX;
-        const touchEndY = touch.clientY;
+        const currentEndTime = currentTaskText.split(' - ')[1].split(':')[0];
+        const nextStartTime = nextTaskText.split(' - ')[0];
 
-        // 计算滑动距离
-        const diffX = touchEndX - touchStartX;
-        const diffY = touchEndY - touchStartY;
-
-        // 如果滑动距离超过阈值，则认为是滑动事件
-        if (Math.abs(diffX) > swipeThreshold && Math.abs(diffX) > Math.abs(diffY)) {
-            isSwiping = true; // 标记为滑动事件
-            e.preventDefault(); // 防止页面滚动
+        if (currentEndTime !== nextStartTime) {
+            const updatedNextTaskText = nextTaskText.replace(nextStartTime, currentEndTime);
+            tasks[index + 1].textContent = updatedNextTaskText;
+            updateLocalStorage();
         }
-    });
-
-    li.addEventListener('touchend', (e) => {
-        const touch = e.changedTouches[0];
-        const touchEndX = touch.clientX;
-        const touchEndY = touch.clientY;
-
-        // 计算滑动距离
-        const diffX = touchEndX - touchStartX;
-        const diffY = touchEndY - touchStartY;
-
-        // 如果是滑动事件，则执行删除操作
-        if (isSwiping) {
-            // 判断是左滑还是右滑
-            if (diffX > 0) {
-                // 右滑：删除记录
-                li.classList.add('swiped'); // 添加滑动状态
-                setTimeout(() => deleteActivity(li), 300); // 延迟删除任务，等待动画完成
-            } else {
-                // 左滑：删除记录
-                li.classList.add('swiped'); // 添加滑动状态
-                setTimeout(() => deleteActivity(li), 300); // 延迟删除任务，等待动画完成
-            }
-        }
-    });
-}
-
-// 删除记录
-function deleteActivity(li) {
-    li.remove();
-    updateLocalStorage();   
+    }
 }
 
 // 表单提交事件
