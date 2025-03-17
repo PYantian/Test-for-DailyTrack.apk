@@ -174,10 +174,10 @@ function addSwipeToDelete(li) {
         const swipeDistance = touchEndX - touchStartX;
 
         // 判断滑动方向
-        if (swipeDistance > 50) {
+        if (swipeDistance > 400) {
             // 右滑：删除记录
             deleteActivity(li);
-        } else if (swipeDistance < -50) {
+        } else if (swipeDistance < -400) {
             // 左滑：删除记录
             deleteActivity(li);
         }
