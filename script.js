@@ -161,12 +161,13 @@ function updateLocalStorage() {
 function addSwipeToDelete(li) {
     let touchStartX = 0;
     let touchStartY = 0;
-    let isClick = true; // 默认是点击事件
+    let isSwiping = false;
+    const swipeThreshold = 100; // 滑动阈值，单位：像素
 
     li.addEventListener('touchstart', (e) => {
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
-        isClick = true; // 标记为点击事件
+        isSwiping = false; // 初始状态为未滑动
     });
 
     li.addEventListener('touchmove', (e) => {
@@ -178,9 +179,9 @@ function addSwipeToDelete(li) {
         const diffX = touchEndX - touchStartX;
         const diffY = touchEndY - touchStartY;
 
-        // 如果滑动距离较大，则认为是滑动操作，不是点击
-        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
-            isClick = false; // 标记为滑动事件
+        // 如果滑动距离超过阈值，则认为是滑动事件
+        if (Math.abs(diffX) > swipeThreshold && Math.abs(diffX) > Math.abs(diffY)) {
+            isSwiping = true; // 标记为滑动事件
             e.preventDefault(); // 防止页面滚动
         }
     });
@@ -194,8 +195,8 @@ function addSwipeToDelete(li) {
         const diffX = touchEndX - touchStartX;
         const diffY = touchEndY - touchStartY;
 
-        // 如果滑动距离较大，则认为是滑动操作，不是点击
-        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+        // 如果是滑动事件，则执行删除操作
+        if (isSwiping) {
             // 判断是左滑还是右滑
             if (diffX > 0) {
                 // 右滑：删除记录
@@ -204,28 +205,6 @@ function addSwipeToDelete(li) {
                 // 左滑：删除记录
                 deleteActivity(li);
             }
-        }
-
-        // 如果是点击事件，则执行点击逻辑
-        if (isClick) {
-            // 点击逻辑（例如编辑）
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.value = li.textContent;
-            li.textContent = '';
-            li.appendChild(input);
-            input.focus();
-
-            // 按下回车键或失去焦点时保存修改
-            input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    saveEditedText(li, input);
-                }
-            });
-
-            input.addEventListener('blur', () => {
-                saveEditedText(li, input);
-            });
         }
     });
 }
