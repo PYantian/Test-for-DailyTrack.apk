@@ -23,7 +23,7 @@ function loadActivities(date) {
     // 设置 lastTime 为最后一条记录的时间
     if (activities.length > 0) {
         const lastActivity = activities[activities.length - 1];
-        const lastActivityTime = lastActivity.split(' - ')[0]; // 提取时间
+        const lastActivityTime = lastActivity.split(' - ')[1].split(':')[0]; // 提取结束时间
         lastTime = new Date(`1970-01-01T${lastActivityTime}:00`); // 转换为 Date 对象
     }
 }
@@ -39,17 +39,24 @@ function saveActivity(date, activityText) {
 function addActivity(currentTime, activity) {
     const activityList = document.getElementById('activityList');
 
+    // 获取最后一个活动的结束时间
+    const lastActivity = activityList.lastChild;
+    let lastEndTime = null;
+    if (lastActivity) {
+        const lastActivityText = lastActivity.textContent;
+        lastEndTime = lastActivityText.split(' - ')[1].split(':')[0]; // 提取结束时间
+    }
+
     // 格式化时间
     const formattedTime = formatTime(currentTime);
 
-    // 如果是第一次记录，只显示当前时间
-    if (!lastTime) {
-        const li = createEditableListItem(`${formattedTime} - ${activity}`, 0);
+    // 如果存在最后一个活动，则使用其结束时间作为新活动的开始时间
+    if (lastEndTime) {
+        const li = createEditableListItem(`${lastEndTime} - ${formattedTime}: ${activity}`, activityList.children.length);
         activityList.appendChild(li);
     } else {
-        // 否则显示时间段
-        const formattedLastTime = formatTime(lastTime);
-        const li = createEditableListItem(`${formattedLastTime} - ${formattedTime}: ${activity}`, activityList.children.length);
+        // 否则只显示当前时间
+        const li = createEditableListItem(`${formattedTime} - ${activity}`, 0);
         activityList.appendChild(li);
     }
 
@@ -107,6 +114,9 @@ function createEditableListItem(text, index) {
 
     // 单击事件：将文字替换为输入框
     li.addEventListener('click', () => {
+        // 如果已经处于编辑状态，则直接返回
+        if (li.querySelector('input')) return;
+
         const input = document.createElement('input');
         input.type = 'text';
         input.value = li.textContent;
@@ -133,11 +143,11 @@ function createEditableListItem(text, index) {
 function saveEditedText(li, input, index) {
     const newText = input.value.trim();
     if (newText) {
-        li.textContent = newText;
+        li.textContent = newText; // 更新文本内容
         updateLocalStorage();
         updateNextTaskTime(index);
     } else {
-        li.textContent = input.value; // 保留原内容
+        li.textContent = input.value || li.textContent; // 恢复原始文本
     }
 }
 
