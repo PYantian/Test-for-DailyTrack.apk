@@ -200,10 +200,12 @@ function addSwipeToDelete(li) {
             // 判断是左滑还是右滑
             if (diffX > 0) {
                 // 右滑：删除记录
-                deleteActivity(li);
+                li.classList.add('swiped'); // 添加滑动状态
+                setTimeout(() => deleteActivity(li), 300); // 延迟删除任务，等待动画完成
             } else {
                 // 左滑：删除记录
-                deleteActivity(li);
+                li.classList.add('swiped'); // 添加滑动状态
+                setTimeout(() => deleteActivity(li), 300); // 延迟删除任务，等待动画完成
             }
         }
     });
@@ -211,10 +213,8 @@ function addSwipeToDelete(li) {
 
 // 删除记录
 function deleteActivity(li) {
-    if (confirm('确定要删除这条记录吗？')) {
-        li.remove();
-        updateLocalStorage();
-    }
+    li.remove();
+    updateLocalStorage();   
 }
 
 // 表单提交事件
