@@ -160,43 +160,73 @@ function updateLocalStorage() {
 // 添加滑动删除功能
 function addSwipeToDelete(li) {
     let touchStartX = 0;
-    let touchEndX = 0;
-    let isSwiping = false;
+    let touchStartY = 0;
+    let isClick = true; // 默认是点击事件
 
     li.addEventListener('touchstart', (e) => {
         touchStartX = e.touches[0].clientX;
-        isSwiping = true;
+        touchStartY = e.touches[0].clientY;
+        isClick = true; // 标记为点击事件
     });
 
     li.addEventListener('touchmove', (e) => {
-        if (!isSwiping) return;
-        touchEndX = e.touches[0].clientX;
+        const touch = e.touches[0];
+        const touchEndX = touch.clientX;
+        const touchEndY = touch.clientY;
 
         // 计算滑动距离
-        const swipeDistance = touchEndX - touchStartX;
+        const diffX = touchEndX - touchStartX;
+        const diffY = touchEndY - touchStartY;
 
-        // 限制滑动范围
-        if (swipeDistance > 50 || swipeDistance < -50) {
+        // 如果滑动距离较大，则认为是滑动操作，不是点击
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+            isClick = false; // 标记为滑动事件
             e.preventDefault(); // 防止页面滚动
         }
     });
 
-    li.addEventListener('touchend', () => {
-        if (!isSwiping) return;
+    li.addEventListener('touchend', (e) => {
+        const touch = e.changedTouches[0];
+        const touchEndX = touch.clientX;
+        const touchEndY = touch.clientY;
 
-        const swipeDistance = touchEndX - touchStartX;
+        // 计算滑动距离
+        const diffX = touchEndX - touchStartX;
+        const diffY = touchEndY - touchStartY;
 
-        // 判断滑动方向
-        if (swipeDistance > 50) {
-            // 右滑：删除记录
-            deleteActivity(li);
-        } else if (swipeDistance < -50) {
-            // 左滑：删除记录
-            deleteActivity(li);
+        // 如果滑动距离较大，则认为是滑动操作，不是点击
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+            // 判断是左滑还是右滑
+            if (diffX > 0) {
+                // 右滑：删除记录
+                deleteActivity(li);
+            } else {
+                // 左滑：删除记录
+                deleteActivity(li);
+            }
         }
 
-        // 重置滑动状态
-        isSwiping = false;
+        // 如果是点击事件，则执行点击逻辑
+        if (isClick) {
+            // 点击逻辑（例如编辑）
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = li.textContent;
+            li.textContent = '';
+            li.appendChild(input);
+            input.focus();
+
+            // 按下回车键或失去焦点时保存修改
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    saveEditedText(li, input);
+                }
+            });
+
+            input.addEventListener('blur', () => {
+                saveEditedText(li, input);
+            });
+        }
     });
 }
 
