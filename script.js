@@ -1,5 +1,3 @@
-let lastTime = null;
-
 // 获取当前日期（格式：YYYY-MM-DD）
 function getCurrentDate() {
     const date = new Date();
@@ -19,15 +17,7 @@ function loadActivities(date) {
         const li = createEditableListItem(activity);
         activityList.appendChild(li);
     });
-
-    // 设置 lastTime 为最后一条记录的结束时间
-    if (activities.length > 0) {
-        const lastActivity = activities[activities.length - 1]; // "11:30 - 12:00: 午餐"
-        const lastActivityTime = lastActivity.split(' - ')[1].split(':')[0] + ":" + lastActivity.split(' - ')[1].split(':')[1]; // "12:00"
-        lastTime = new Date(`1970-01-01T${lastActivityTime}:00`); // 转换为 Date 对象
-    }
 }
-
 
 // 保存记录到 localStorage
 function saveActivity(date, activityText) {
@@ -37,26 +27,20 @@ function saveActivity(date, activityText) {
 }
 
 // 添加活动
-function addActivity(currentTime, activity) {
+function addActivity(activity) {
     const activityList = document.getElementById('activityList');
     const li = document.createElement('li');
 
-    // 格式化时间
+    // 格式化当前时间
+    const currentTime = new Date();
     const formattedTime = formatTime(currentTime);
-    const currentDate = getCurrentDate();
-    loadActivities(currentDate);
 
     // 如果是第一次记录，只显示当前时间
-    if (!lastTime) {
-        li.textContent = `${formattedTime} - ${formattedTime}: ${activity}`;
-    } else {
-        // 否则显示时间段
-        const formattedLastTime = formatTime(lastTime);
-        li.textContent = `${formattedLastTime} - ${formattedTime}: ${activity}`;
-    }
+    li.textContent = `${formattedTime} - ${activity}`;
 
     const editableLi = createEditableListItem(li.textContent);
     activityList.appendChild(editableLi);
+    const currentDate = getCurrentDate();
     saveActivity(currentDate, editableLi.textContent); // 保存记录
 }
 
@@ -67,41 +51,6 @@ function formatTime(date) {
     return `${hours}:${minutes}`;
 }
 
-// 加载历史记录日期选项
-function loadDateSelector() {
-    const dateSelector = document.getElementById('dateSelector');
-    dateSelector.innerHTML = '<option value="">选择日期</option>'; // 清空选项
-
-    // 获取所有存储的日期
-    const dates = [];
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            dates.push(key);
-        }
-    }
-
-    // 按日期排序并添加到选择器中
-    dates.sort().reverse().forEach(date => {
-        const option = document.createElement('option');
-        option.value = date;
-        option.textContent = date;
-        dateSelector.appendChild(option);
-    });
-}
-
-// 加载历史记录
-function loadHistory(date) {
-    const activities = JSON.parse(localStorage.getItem(date)) || [];
-    const historyList = document.getElementById('historyList');
-    historyList.innerHTML = ''; // 清空历史记录
-
-    activities.forEach(activity => {
-        const li = createEditableListItem(activity);
-        historyList.appendChild(li);
-    });
-}
-
 // 创建可编辑的列表项
 function createEditableListItem(text) {
     const li = document.createElement('li');
@@ -109,9 +58,6 @@ function createEditableListItem(text) {
 
     // 单击事件：将文字替换为输入框
     li.addEventListener('click', () => {
-        // 如果已经存在输入框，直接返回
-        if (li.querySelector('input')) return;
-
         const input = document.createElement('input');
         input.type = 'text';
         input.value = li.textContent;
@@ -137,6 +83,7 @@ function createEditableListItem(text) {
     return li;
 }
 
+// 保存编辑后的文字
 function saveEditedText(li, input) {
     const newText = input.value.trim();
     if (newText) {
@@ -145,11 +92,7 @@ function saveEditedText(li, input) {
     } else {
         li.textContent = input.value; // 保留原内容
     }
-
-    // 移除输入框
-    input.remove();
 }
-
 
 // 更新 localStorage
 function updateLocalStorage() {
@@ -169,7 +112,7 @@ function addSwipeToDelete(li) {
     let touchStartX = 0;
     let touchStartY = 0;
     let isSwiping = false;
-    const swipeThreshold = 150; // 滑动阈值，单位：像素
+    const swipeThreshold = 100; // 滑动阈值，单位：像素
 
     li.addEventListener('touchstart', (e) => {
         touchStartX = e.touches[0].clientX;
@@ -229,10 +172,9 @@ document.getElementById('activityForm').addEventListener('submit', function(even
     event.preventDefault();
 
     const activity = document.getElementById('activity').value;
-    const currentTime = new Date();
 
     if (activity) {
-        addActivity(currentTime, activity);
+        addActivity(activity);
         document.getElementById('activityForm').reset();
     }
 });
