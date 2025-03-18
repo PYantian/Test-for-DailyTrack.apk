@@ -20,13 +20,14 @@ function loadActivities(date) {
         activityList.appendChild(li);
     });
 
-    // 设置 lastTime 为最后一条记录的时间
+    // 设置 lastTime 为最后一条记录的结束时间
     if (activities.length > 0) {
-        const lastActivity = activities[activities.length - 1];
-        const lastActivityTime = lastActivity.split(' - ')[0]; // 提取时间
+        const lastActivity = activities[activities.length - 1]; // "11:30 - 12:00: 午餐"
+        const lastActivityTime = lastActivity.split(' - ')[1].split(':')[0] + ":" + lastActivity.split(' - ')[1].split(':')[1]; // "12:00"
         lastTime = new Date(`1970-01-01T${lastActivityTime}:00`); // 转换为 Date 对象
     }
 }
+
 
 // 保存记录到 localStorage
 function saveActivity(date, activityText) {
@@ -42,12 +43,12 @@ function addActivity(currentTime, activity) {
 
     // 格式化时间
     const formattedTime = formatTime(currentTime);
-
     const currentDate = getCurrentDate();
     loadActivities(currentDate);
+
     // 如果是第一次记录，只显示当前时间
     if (!lastTime) {
-        li.textContent = `${formattedTime} - ${activity}`;
+        li.textContent = `${formattedTime} - ${formattedTime}: ${activity}`;
     } else {
         // 否则显示时间段
         const formattedLastTime = formatTime(lastTime);
@@ -56,9 +57,7 @@ function addActivity(currentTime, activity) {
 
     const editableLi = createEditableListItem(li.textContent);
     activityList.appendChild(editableLi);
-    const currentDate = getCurrentDate();
     saveActivity(currentDate, editableLi.textContent); // 保存记录
-    lastTime = currentTime;
 }
 
 // 格式化时间为 HH:MM
@@ -110,6 +109,9 @@ function createEditableListItem(text) {
 
     // 单击事件：将文字替换为输入框
     li.addEventListener('click', () => {
+        // 如果已经存在输入框，直接返回
+        if (li.querySelector('input')) return;
+
         const input = document.createElement('input');
         input.type = 'text';
         input.value = li.textContent;
@@ -135,7 +137,6 @@ function createEditableListItem(text) {
     return li;
 }
 
-// 保存编辑后的文字
 function saveEditedText(li, input) {
     const newText = input.value.trim();
     if (newText) {
@@ -144,7 +145,11 @@ function saveEditedText(li, input) {
     } else {
         li.textContent = input.value; // 保留原内容
     }
+
+    // 移除输入框
+    input.remove();
 }
+
 
 // 更新 localStorage
 function updateLocalStorage() {
@@ -164,7 +169,7 @@ function addSwipeToDelete(li) {
     let touchStartX = 0;
     let touchStartY = 0;
     let isSwiping = false;
-    const swipeThreshold = 100; // 滑动阈值，单位：像素
+    const swipeThreshold = 150; // 滑动阈值，单位：像素
 
     li.addEventListener('touchstart', (e) => {
         touchStartX = e.touches[0].clientX;
